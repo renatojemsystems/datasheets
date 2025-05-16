@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <title>Jem Systems - Datasheets</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <style>
+    :root {
+      --theme-color: #27979C;
+      --border-search-color: #ccc;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: #f2f2f2;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .container {
+      text-align: center;
+      margin-top: 100px;
+    }
+
+ .logo img {
+  display: block;
+  margin: 0 auto;
+      display: block;
+    max-height: 50px;
+    max-width: 100%;
+    height: auto;
+}
+
+    .subtitulo {
+      font-size: 18px;
+      color: #555;
+      margin-bottom: 30px;
+      margin-top: 14px;
+    }
+
+    .upload {
+      margin-bottom: 20px;
+    }
+
+    .search-box {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 40px;
+    }
+
+    .search-box input[type="text"] {
+      width: 500px;
+      padding: 12px 20px;
+      font-size: 16px;
+      border: 1px solid var(--border-search-color);
+      border-radius: 30px;
+      outline: none;
+      transition: 0.3s;
+    }
+
+    .search-box input[type="text"]:focus {
+      border-color: var(--theme-color);
+      box-shadow: 0 0 5px var(--theme-color);
+    }
+
+    .search-box button {
+      padding: 12px 24px;
+      font-size: 16px;
+      border-radius: 30px;
+      border: none;
+      background-color: var(--theme-color);
+      color: white;
+      cursor: pointer;
+    }
+
+    .search-box button:hover {
+      background-color: #1f747d;
+    }
+
+    #resultado {
+      width: 90%;
+      max-width: 900px;
+      margin-top: 40px;
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0px 2px 6px rgba(0,0,0,0.1);
+    }
+
+    .item {
+      margin-bottom: 20px;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 10px;
+    }
+
+    .item:last-child {
+      border-bottom: none;
+    }
+
+    .item-title {
+      font-weight: bold;
+      color: var(--theme-color);
+      font-size: 18px;
+    }
+
+    .item-content {
+      font-size: 14px;
+      color: #333;
+      margin-top: 5px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="logo">
+  <img src="https://jemsystems.com/media/logo/stores/3/Gif_S_Header_SIte.gif" alt="Jem Systems Logo" style="height: 80px;" />
+</div>
+    <div class="subtitulo">Datasheets Search - Fire Alarm</div>
+
+    <div class="upload">
+      <input type="file" id="arquivoExcel" accept=".xlsx,.xls,.csv" />
+    </div>
+
+    <div class="search-box">
+      <input type="text" id="campoBusca" placeholder="Search for model, name or function..." />
+      <button onclick="buscar()">Search</button>
+    </div>
+  </div>
+
+  <div id="resultado"></div>
+
+<script>
+  let dadosPlanilha = [];
+
+  document.getElementById('arquivoExcel').addEventListener('change', function (e) {
+    const reader = new FileReader();
+    const file = e.target.files[0];
+
+    if (file.name.endsWith('.csv')) {
+      reader.onload = function (e) {
+        const data = e.target.result;
+        const workbook = XLSX.read(data, { type: 'string' });
+        const primeiraAba = workbook.SheetNames[0];
+        const planilha = workbook.Sheets[primeiraAba];
+        dadosPlanilha = XLSX.utils.sheet_to_json(planilha);
+        alert("Planilha CSV carregada com sucesso!");
+      };
+      reader.readAsText(file);
+    } else {
+      reader.onload = function (e) {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const primeiraAba = workbook.SheetNames[0];
+        const planilha = workbook.Sheets[primeiraAba];
+        dadosPlanilha = XLSX.utils.sheet_to_json(planilha);
+        alert("Planilha Excel carregada com sucesso!");
+      };
+      reader.readAsArrayBuffer(file);
+    }
+  });
+
+  function buscar() {
+    const termo = document.getElementById('campoBusca').value.toLowerCase();
+    const resultados = dadosPlanilha.filter(item =>
+      Object.values(item).some(valor =>
+        String(valor).toLowerCase().includes(termo)
+      )
+    );
+
+    const container = document.getElementById('resultado');
+    container.innerHTML = "";
+
+    if (resultados.length === 0) {
+      container.innerHTML = '<p>Nenhum resultado encontrado.</p>';
+      return;
+    }
+
+    resultados.forEach((item, index) => {
+      const card = document.createElement('div');
+      card.className = 'item';
+
+      const nome = item.Nome || item.Name || item.Modelo || `Dispositivo ${index + 1}`;
+      const url = item.URL || item.Datasheet || item["URL Datasheet"] || null;
+
+      card.innerHTML = `
+        <div class="item-title">${nome}</div>
+        <div class="item-content">
+          ${Object.entries(item).map(([chave, valor]) => {
+            if ((chave.toLowerCase().includes("url") || chave.toLowerCase().includes("datasheet")) && valor) {
+              return `<strong>${chave}:</strong> <a href="${valor}" target="_blank">${valor}</a>`;
+            }
+            return `<strong>${chave}:</strong> ${valor}`;
+          }).join("<br>")}
+        </div>
+        ${url ? `<button onclick="mostrarPDF('${url}', 'pdf-${index}')">See Data Sheet</button><div id="pdf-${index}" style="margin-top: 15px;"></div>` : ''}
+      `;
+
+      container.appendChild(card);
+    });
+  }
+
+  function mostrarPDF(url, targetId) {
+    const container = document.getElementById(targetId);
+    container.innerHTML = `
+      <iframe src="${url}" width="100%" height="600px" style="border:1px solid #ccc; border-radius: 8px;"></iframe>
+    `;
+    
+  }
+</script>
+</body>
+</html>
