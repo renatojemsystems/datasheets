@@ -2,6 +2,7 @@
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Jem Systems - Datasheets</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
@@ -22,32 +23,34 @@
 
     .container {
       text-align: center;
-      margin-top: 100px;
+      margin: 60px 20px 20px;
+      width: 100%;
+      max-width: 960px;
     }
 
     .logo img {
       display: block;
       margin: 0 auto;
       max-height: 50px;
-      height: auto;
     }
 
     .subtitulo {
       font-size: 18px;
       color: #555;
-      margin-bottom: 30px;
-      margin-top: 14px;
+      margin: 14px 0 30px;
     }
 
     .search-box {
       display: flex;
+      flex-wrap: wrap;
       justify-content: center;
       gap: 10px;
-      margin-bottom: 40px;
+      margin-bottom: 30px;
     }
 
     .search-box input[type="text"] {
-      width: 500px;
+      flex: 1 1 300px;
+      max-width: 600px;
       padding: 12px 20px;
       font-size: 16px;
       border: 1px solid var(--border-search-color);
@@ -69,6 +72,7 @@
       background-color: var(--theme-color);
       color: white;
       cursor: pointer;
+      white-space: nowrap;
     }
 
     .search-box button:hover {
@@ -76,9 +80,9 @@
     }
 
     #resultado {
-      width: 90%;
-      max-width: 900px;
-      margin-top: 40px;
+      width: 100%;
+      max-width: 960px;
+      margin: 20px;
       background: white;
       padding: 20px;
       border-radius: 10px;
@@ -120,6 +124,17 @@
     .item button:hover {
       background-color: #1f747d;
     }
+
+    @media (max-width: 600px) {
+      .search-box {
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .search-box input[type="text"] {
+        width: 100%;
+      }
+    }
   </style>
 </head>
 <body>
@@ -130,10 +145,7 @@
     <div class="subtitulo">Datasheets Search - Fire Alarm</div>
 
     <div class="search-box">
-      <input
-        type="text"
-        id="campoBusca"
-        placeholder="Search for model, name or function..." />
+      <input type="text" id="campoBusca" placeholder="Search for model, name or function..." />
       <button onclick="buscar()">Search</button>
     </div>
   </div>
@@ -143,7 +155,6 @@
   <script>
     let dadosPlanilha = [];
 
-    // 🚀 Carrega automaticamente o CSV
     fetch('dados.csv')
       .then(response => response.text())
       .then(csvData => {
@@ -158,7 +169,6 @@
         alert('Erro ao carregar o arquivo dados.csv');
       });
 
-    // 🔍 Executa a busca
     function buscar() {
       const termo = document.getElementById('campoBusca').value.toLowerCase();
       const resultados = dadosPlanilha.filter(item =>
@@ -199,7 +209,6 @@
       });
     }
 
-    // 📄 Exibe o PDF
     function mostrarPDF(url, targetId) {
       const container = document.getElementById(targetId);
       container.innerHTML = `
@@ -207,7 +216,6 @@
       `;
     }
 
-    // ⌨️ Ativa busca ao pressionar Enter
     document.getElementById('campoBusca').addEventListener('keydown', function (e) {
       if (e.key === 'Enter') {
         buscar();
