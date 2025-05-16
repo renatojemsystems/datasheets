@@ -25,24 +25,18 @@
       margin-top: 100px;
     }
 
- .logo img {
-  display: block;
-  margin: 0 auto;
+    .logo img {
       display: block;
-    max-height: 50px;
-    max-width: 100%;
-    height: auto;
-}
+      margin: 0 auto;
+      max-height: 50px;
+      height: auto;
+    }
 
     .subtitulo {
       font-size: 18px;
       color: #555;
       margin-bottom: 30px;
       margin-top: 14px;
-    }
-
-    .upload {
-      margin-bottom: 20px;
     }
 
     .search-box {
@@ -112,18 +106,28 @@
       color: #333;
       margin-top: 5px;
     }
+
+    .item button {
+      margin-top: 10px;
+      padding: 8px 16px;
+      background-color: var(--theme-color);
+      color: white;
+      border: none;
+      border-radius: 20px;
+      cursor: pointer;
+    }
+
+    .item button:hover {
+      background-color: #1f747d;
+    }
   </style>
 </head>
 <body>
   <div class="container">
     <div class="logo">
-  <img src="https://jemsystems.com/media/logo/stores/3/Gif_S_Header_SIte.gif" alt="Jem Systems Logo" style="height: 80px;" />
-</div>
-    <div class="subtitulo">Datasheets Search - Fire Alarm</div>
-
-    <div class="upload">
-      <input type="file" id="arquivoExcel" accept=".xlsx,.xls,.csv" />
+      <img src="https://jemsystems.com/media/logo/stores/3/Gif_S_Header_SIte.gif" alt="Jem Systems Logo" />
     </div>
+    <div class="subtitulo">Datasheets Search - Fire Alarm</div>
 
     <div class="search-box">
       <input type="text" id="campoBusca" placeholder="Search for model, name or function..." />
@@ -133,83 +137,70 @@
 
   <div id="resultado"></div>
 
-<script>
-  let dadosPlanilha = [];
+  <script>
+    let dadosPlanilha = [];
 
-  document.getElementById('arquivoExcel').addEventListener('change', function (e) {
-    const reader = new FileReader();
-    const file = e.target.files[0];
-
-    if (file.name.endsWith('.csv')) {
-      reader.onload = function (e) {
-        const data = e.target.result;
-        const workbook = XLSX.read(data, { type: 'string' });
+    // 🚀 Carregamento automático do arquivo CSV
+    fetch('dados.csv')
+      .then(response => response.text())
+      .then(csvData => {
+        const workbook = XLSX.read(csvData, { type: 'string' });
         const primeiraAba = workbook.SheetNames[0];
         const planilha = workbook.Sheets[primeiraAba];
         dadosPlanilha = XLSX.utils.sheet_to_json(planilha);
-        alert("Planilha CSV carregada com sucesso!");
-      };
-      reader.readAsText(file);
-    } else {
-      reader.onload = function (e) {
-        const data = new Uint8Array(e.target.result);
-        const workbook = XLSX.read(data, { type: 'array' });
-        const primeiraAba = workbook.SheetNames[0];
-        const planilha = workbook.Sheets[primeiraAba];
-        dadosPlanilha = XLSX.utils.sheet_to_json(planilha);
-        alert("Planilha Excel carregada com sucesso!");
-      };
-      reader.readAsArrayBuffer(file);
+        console.log("dados.csv carregado com sucesso!");
+      })
+      .catch(err => {
+        console.error('Erro ao carregar o arquivo CSV:', err);
+        alert('Erro ao carregar o arquivo dados.csv');
+      });
+
+    function buscar() {
+      const termo = document.getElementById('campoBusca').value.toLowerCase();
+      const resultados = dadosPlanilha.filter(item =>
+        Object.values(item).some(valor =>
+          String(valor).toLowerCase().includes(termo)
+        )
+      );
+
+      const container = document.getElementById('resultado');
+      container.innerHTML = "";
+
+      if (resultados.length === 0) {
+        container.innerHTML = '<p>Nenhum resultado encontrado.</p>';
+        return;
+      }
+
+      resultados.forEach((item, index) => {
+        const card = document.createElement('div');
+        card.className = 'item';
+
+        const nome = item.Nome || item.Name || item.Modelo || `Dispositivo ${index + 1}`;
+        const url = item.URL || item.Datasheet || item["URL Datasheet"] || null;
+
+        card.innerHTML = `
+          <div class="item-title">${nome}</div>
+          <div class="item-content">
+            ${Object.entries(item).map(([chave, valor]) => {
+              if ((chave.toLowerCase().includes("url") || chave.toLowerCase().includes("datasheet")) && valor) {
+                return `<strong>${chave}:</strong> <a href="${valor}" target="_blank">${valor}</a>`;
+              }
+              return `<strong>${chave}:</strong> ${valor}`;
+            }).join("<br>")}
+          </div>
+          ${url ? `<button onclick="mostrarPDF('${url}', 'pdf-${index}')">See Data Sheet</button><div id="pdf-${index}" style="margin-top: 15px;"></div>` : ''}
+        `;
+
+        container.appendChild(card);
+      });
     }
-  });
 
-  function buscar() {
-    const termo = document.getElementById('campoBusca').value.toLowerCase();
-    const resultados = dadosPlanilha.filter(item =>
-      Object.values(item).some(valor =>
-        String(valor).toLowerCase().includes(termo)
-      )
-    );
-
-    const container = document.getElementById('resultado');
-    container.innerHTML = "";
-
-    if (resultados.length === 0) {
-      container.innerHTML = '<p>Nenhum resultado encontrado.</p>';
-      return;
-    }
-
-    resultados.forEach((item, index) => {
-      const card = document.createElement('div');
-      card.className = 'item';
-
-      const nome = item.Nome || item.Name || item.Modelo || `Dispositivo ${index + 1}`;
-      const url = item.URL || item.Datasheet || item["URL Datasheet"] || null;
-
-      card.innerHTML = `
-        <div class="item-title">${nome}</div>
-        <div class="item-content">
-          ${Object.entries(item).map(([chave, valor]) => {
-            if ((chave.toLowerCase().includes("url") || chave.toLowerCase().includes("datasheet")) && valor) {
-              return `<strong>${chave}:</strong> <a href="${valor}" target="_blank">${valor}</a>`;
-            }
-            return `<strong>${chave}:</strong> ${valor}`;
-          }).join("<br>")}
-        </div>
-        ${url ? `<button onclick="mostrarPDF('${url}', 'pdf-${index}')">See Data Sheet</button><div id="pdf-${index}" style="margin-top: 15px;"></div>` : ''}
+    function mostrarPDF(url, targetId) {
+      const container = document.getElementById(targetId);
+      container.innerHTML = `
+        <iframe src="${url}" width="100%" height="600px" style="border:1px solid #ccc; border-radius: 8px;"></iframe>
       `;
-
-      container.appendChild(card);
-    });
-  }
-
-  function mostrarPDF(url, targetId) {
-    const container = document.getElementById(targetId);
-    container.innerHTML = `
-      <iframe src="${url}" width="100%" height="600px" style="border:1px solid #ccc; border-radius: 8px;"></iframe>
-    `;
-    
-  }
-</script>
+    }
+  </script>
 </body>
 </html>
