@@ -130,7 +130,10 @@
     <div class="subtitulo">Datasheets Search - Fire Alarm</div>
 
     <div class="search-box">
-      <input type="text" id="campoBusca" placeholder="Search for model, name or function..." />
+      <input
+        type="text"
+        id="campoBusca"
+        placeholder="Search for model, name or function..." />
       <button onclick="buscar()">Search</button>
     </div>
   </div>
@@ -140,7 +143,7 @@
   <script>
     let dadosPlanilha = [];
 
-    // 🚀 Carrega automaticamente o arquivo CSV
+    // 🚀 Carrega automaticamente o CSV
     fetch('dados.csv')
       .then(response => response.text())
       .then(csvData => {
@@ -155,6 +158,7 @@
         alert('Erro ao carregar o arquivo dados.csv');
       });
 
+    // 🔍 Executa a busca
     function buscar() {
       const termo = document.getElementById('campoBusca').value.toLowerCase();
       const resultados = dadosPlanilha.filter(item =>
@@ -195,12 +199,20 @@
       });
     }
 
+    // 📄 Exibe o PDF
     function mostrarPDF(url, targetId) {
       const container = document.getElementById(targetId);
       container.innerHTML = `
         <iframe src="${url}" width="100%" height="600px" style="border:1px solid #ccc; border-radius: 8px;"></iframe>
       `;
     }
+
+    // ⌨️ Ativa busca ao pressionar Enter
+    document.getElementById('campoBusca').addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') {
+        buscar();
+      }
+    });
   </script>
 </body>
 </html>
