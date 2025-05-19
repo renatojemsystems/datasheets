@@ -123,6 +123,16 @@
       word-wrap: break-word;
     }
 
+    .item-content a {
+      color: var(--theme-color);
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    .item-content a::before {
+      content: "📄 ";
+    }
+
     .item button {
       margin-top: 10px;
       padding: 8px 16px;
@@ -148,7 +158,6 @@
       height: auto;
     }
 
-    /* Mobile only styles */
     @media (max-width: 600px) {
       .search-box {
         flex-direction: column;
@@ -228,17 +237,17 @@
         const nome = item.Nome || item.Name || item.Modelo || `Dispositivo ${index + 1}`;
         const url = item.URL || item.Datasheet || item["URL Datasheet"] || null;
 
+        const conteudo = Object.entries(item).map(([chave, valor]) => {
+          if ((chave.toLowerCase() === "url datasheet" || chave.toLowerCase().includes("datasheet")) && valor) {
+            return `<strong>${chave}:</strong> <a href="${valor}" target="_blank">Clique aqui para abrir</a>`;
+          }
+          return `<strong>${chave}:</strong> ${valor}`;
+        }).join("<br>");
+
         card.innerHTML = `
           <div class="item-title">${nome}</div>
-          <div class="item-content">
-            ${Object.entries(item).map(([chave, valor]) => {
-              if ((chave.toLowerCase().includes("url") || chave.toLowerCase().includes("datasheet")) && valor) {
-                return `<strong>${chave}:</strong> <a href="${valor}" target="_blank">${valor}</a>`;
-              }
-              return `<strong>${chave}:</strong> ${valor}`;
-            }).join("<br>")}
-          </div>
-          ${url ? `<button onclick="mostrarPDF('${url}', 'pdf-${index}')">See Data Sheet</button><div id="pdf-${index}" style="margin-top: 15px;"></div>` : ''}
+          <div class="item-content">${conteudo}</div>
+          ${url ? `<button onclick="mostrarPDF('${url}', 'pdf-${index}')">Ver PDF Incorporado</button><div id="pdf-${index}" style="margin-top: 15px;"></div>` : ''}
         `;
 
         container.appendChild(card);
