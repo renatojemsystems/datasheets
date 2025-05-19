@@ -239,7 +239,7 @@
 
         const conteudo = Object.entries(item).map(([chave, valor]) => {
           if ((chave.toLowerCase() === "url datasheet" || chave.toLowerCase().includes("datasheet")) && valor) {
-            return `<strong>${chave}:</strong> <a href="${valor}" target="_blank">Clique aqui para abrir</a>`;
+            return `<strong>${chave}:</strong> <a href="${valor}" target="_blank">Click here to open</a>`;
           }
           return `<strong>${chave}:</strong> ${valor}`;
         }).join("<br>");
@@ -247,7 +247,7 @@
         card.innerHTML = `
           <div class="item-title">${nome}</div>
           <div class="item-content">${conteudo}</div>
-          ${url ? `<button onclick="mostrarPDF('${url}', 'pdf-${index}')">Ver PDF Incorporado</button><div id="pdf-${index}" style="margin-top: 15px;"></div>` : ''}
+          ${url ? `<button onclick="mostrarPDF('${url}', 'pdf-${index}')">View PDF</button><div id="pdf-${index}" style="margin-top: 15px;"></div>` : ''}
         `;
 
         container.appendChild(card);
